@@ -1,0 +1,64 @@
+{{- if or .Values.ingress.enabled (and .Values.global.ingress.enabled .Values.global.ingress.domain) }}
+{{- $servicePort := .Values.service.port -}}
+{{- $serviceName := include "hasura.fullname" . -}}
+{{- $ingressExtraPaths := .Values.ingress.extraPaths -}}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "hasura.fullname" . }}
+  annotations:
+{{- if .Values.ingress.annotations }}
+{{ toYaml .Values.ingress.annotations | indent 4 }}
+{{- end }}
+{{- if or .Values.global.ingress.tls.enabled .Values.ingress.tls.enabled }}
+    kubernetes.io/tls-acme: "true"
+{{- end }}
+  labels:
+{{- if .Values.ingress.labels }}
+{{ toYaml .Values.ingress.labels | indent 4 }}
+{{- end }}
+spec:
+{{- if .Values.ingress.className }}
+  ingressClassName: {{ .Values.ingress.className }}
+{{- end }}
+  rules:
+  {{- if .Values.global.ingress.domain }}
+  - host: "{{ .Values.ingress.subdomain }}.{{ .Values.global.ingress.domain }}"
+    http:
+      paths:
+        - path: "/"
+          pathType: ImplementationSpecific
+          backend: {{- include "common.ingress.backend" (dict "serviceName" $serviceName "servicePort" $servicePort "context" $ )  | nindent 12 }}
+  {{- end }}
+  {{- range .Values.ingress.hosts }}
+  - host: {{ .name }}
+    http:
+      paths:
+      {{- range $ingressExtraPaths }}
+      - path: {{ default "/" .path | quote }}
+        pathType: ImplementationSpecific
+        backend: {{- include "common.ingress.backend" (dict "serviceName" $serviceName "servicePort" (default $servicePort .port) "context" $ )  | nindent 10 }}
+      {{- end }}
+      - path: {{ default "/" .path | quote }}
+        pathType: ImplementationSpecific
+        backend: {{- include "common.ingress.backend" (dict "serviceName" $serviceName "servicePort" (default $servicePort .port) "context" $ )  | nindent 10 }}
+  {{- end }}
+  {{- if or .tls .Values.ingress.tls.enabled .Values.global.ingress.tls.enabled }}
+  tls:
+  - hosts:
+    {{- if  .Values.ingress.subdomain }}
+    - "{{ .Values.ingress.subdomain }}.{{ .Values.global.ingress.domain }}"
+    {{- else }}
+    - "{{ .Values.global.ingress.domain }}"
+    {{- end }}
+    {{- range .Values.ingress.hosts }}
+    - {{ .name }}
+    {{- end }}
+    {{- if .tlsSecret }}
+    secretName: {{ .tlsSecret }}
+    {{- else}}
+    secretName: "{{ $serviceName }}-tls-secret"
+    {{- end}}
+  {{- end }}
+{{- end -}}
