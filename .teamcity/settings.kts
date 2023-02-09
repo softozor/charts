@@ -1,6 +1,7 @@
-import jetbrains.buildServer.configs.kotlin.*
-import jetbrains.buildServer.configs.kotlin.buildFeatures.perfmon
-import jetbrains.buildServer.configs.kotlin.triggers.vcs
+import common.templates.NexusDockerLogin
+import integration.Integration
+import jetbrains.buildServer.configs.kotlin.project
+import jetbrains.buildServer.configs.kotlin.version
 
 /*
 The settings script is an entry point for defining a TeamCity
@@ -27,25 +28,17 @@ To debug in IntelliJ Idea, open the 'Maven Projects' tool window (View
 version = "2022.10"
 
 project {
+    params {
+        param("teamcity.ui.settings.readOnly", "true")
+        param("hasura.chart.version", "1.1.8")
+        param("hasura.version", "v2.18.0")
+    }
 
-    buildType(SharedLibraries_Charts_Integration)
+    template(NexusDockerLogin)
+
+    val dockerToolsTag = "aace2ad2"
+    val integrationBuild = Integration.Integration(dockerToolsTag = dockerToolsTag)
+
+    buildType(integrationBuild)
 }
 
-object SharedLibraries_Charts_Integration : BuildType({
-    id = AbsoluteId("SharedLibraries_Charts_Integration")
-    name = "Integration"
-
-    vcs {
-        root(DslContext.settingsRoot)
-    }
-
-    triggers {
-        vcs {
-        }
-    }
-
-    features {
-        perfmon {
-        }
-    }
-})
