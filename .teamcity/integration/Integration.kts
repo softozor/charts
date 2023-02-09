@@ -43,7 +43,7 @@ class Integration(
                 set -e
                 helm dependency update hasura
                 CHART_PACKAGE=${'$'}(helm package --app-version %hasura.version% --version %hasura.chart.version% "${'$'}CHART" | cut -d":" -f2 | tr -d '[:space:]')
-                curl -is -u "%system.package-manager.deployer.username%:%system.package-manager.deployer.password%" "https://%system.package-manager.hostname%" --upload-file "${'$'}CHART_PACKAGE" | indent
+                curl -is -u "%system.package-manager.deployer.username%:%system.package-manager.deployer.password%" "https://%system.package-manager.hostname%" --upload-file "${'$'}CHART_PACKAGE"
             """.trimIndent()
             workingDir = "./softozor"
             dockerPull = true
