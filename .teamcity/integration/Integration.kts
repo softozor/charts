@@ -41,6 +41,7 @@ class Integration(
             scriptContent = """
                 #! /bin/sh
                 set -e
+                set -x
                 helm dependency update hasura
                 CHART_PACKAGE=${'$'}(helm package --app-version %hasura.version% --version %hasura.chart.version% "${'$'}CHART" | cut -d":" -f2 | tr -d '[:space:]')
                 curl -is -u "%system.package-manager.deployer.username%:%system.package-manager.deployer.password%" "https://%system.package-manager.hostname%" --upload-file "${'$'}CHART_PACKAGE"
