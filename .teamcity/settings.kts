@@ -29,7 +29,7 @@ version = "2022.10"
 
 project {
     params {
-//        param("teamcity.ui.settings.readOnly", "true")
+        param("teamcity.ui.settings.readOnly", "true")
         param("hasura.chart.version", "1.1.8")
         param("hasura.version", "v2.18.0")
     }
